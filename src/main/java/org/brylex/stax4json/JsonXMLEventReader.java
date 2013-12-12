@@ -6,6 +6,8 @@ import com.fasterxml.jackson.core.JsonToken;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.EndDocument;
+import javax.xml.stream.events.StartDocument;
 import javax.xml.stream.events.XMLEvent;
 import java.io.IOException;
 import java.io.Reader;
@@ -14,14 +16,21 @@ import java.util.Stack;
 public class JsonXMLEventReader implements XMLEventReader {
 
     private final JsonParser parser;
-    private final Stack<JsonToken> stack;
+    private final Stack<XMLEvent> eventStack;
 
-    private String fieldName = null;
+    private final StartDocument startDocument = new JsonStartDocument();
+    private final EndDocument endDocument = new JsonEndDocument();
+
+    private boolean initiated = false;
+    private boolean finished = false;
+
+    private Stack<String> fieldStack;
 
     public JsonXMLEventReader(Reader reader) {
         try {
             this.parser = new JsonFactory().createParser(reader);
-            this.stack = new Stack<>();
+            this.eventStack = new Stack<>();
+            this.fieldStack = new Stack<>();
         } catch (IOException e) {
             throw new RuntimeException("Unable to create JSON parser.", e);
         }
@@ -31,90 +40,136 @@ public class JsonXMLEventReader implements XMLEventReader {
     public XMLEvent nextEvent() throws XMLStreamException {
 
         if (!hasNext()) {
-            throw new XMLStreamException("There's no more JSON tokens available form the underlyng stream.");
+            throw new XMLStreamException("There's no more JSON tokens available form the underlying stream.");
         }
 
-        try {
-            JsonToken currentToken = stack.pop();
-
-            switch (currentToken) {
-                case START_OBJECT:
-
-                    return new JsonStartDocument();
-
-                case END_OBJECT:
-
-                    return new JsonEndDocument();
-
-                case FIELD_NAME:
-
-                    this.fieldName = parser.getCurrentName();
-
-                    break;
-                default:
-                    System.err.println("TOKEN: " + currentToken);
-            }
-
-            return null;
-        } catch (IOException e) {
-            throw new XMLStreamException("Unable to parse JSON Stream.", e);
+        XMLEvent pop = eventStack.pop();
+        if (pop == endDocument) {
+            finished = true;
         }
+
+        return pop;
     }
 
     @Override
     public boolean hasNext() {
 
-        if (!stack.isEmpty()) {
-            return true;
+        if (finished) {
+            return false;
         }
 
-        JsonToken token = null;
+        if (eventStack.isEmpty()) {
+            lookAhead();
+        }
+
+        return !eventStack.isEmpty();
+    }
+
+    private void lookAhead() {
+
+        if (!eventStack.isEmpty() && eventStack.peek().equals(endDocument)) {
+            return;
+        }
+
         try {
-            token = parser.nextToken();
-            if (token == null) {
-                return false;
+
+            JsonToken currentToken = parser.nextToken();
+            if (currentToken != null) {
+
+                switch (currentToken) {
+                    case START_OBJECT:
+
+                        if (!initiated) {
+                            initiated = true;
+                            eventStack.push(startDocument);
+                            return;
+                        } else {
+
+                            eventStack.push(new JsonStartElement(parser.getCurrentName()));
+
+                        }
+
+                        break;
+
+                    case END_OBJECT:
+
+                        String elementName = parser.getCurrentName();
+
+                        if (elementName != null) {
+                            eventStack.push(new JsonEndElement(elementName));
+                        } else {
+                            lookAhead();
+                        }
+
+                        break;
+
+                    case FIELD_NAME:
+
+                        lookAhead();
+
+                        break;
+
+                    case VALUE_STRING:
+
+                        eventStack.push(new JsonEndElement(parser.getCurrentName()));
+                        eventStack.push(new JsonCharacters(parser.getText()));
+                        eventStack.push(new JsonStartElement(parser.getCurrentName()));
+
+                        break;
+
+                    default:
+                        eventStack.push(new JsonCharacters(currentToken.toString()));
+                }
+            } else {
+                eventStack.push(endDocument);
             }
+
         } catch (IOException e) {
-            throw new RuntimeException("Unable to check JSON stream for tokens.", e);
+            throw new RuntimeException("Unable to parse JSON Stream.", e);
         }
-
-        stack.push(token);
-
-        return true;
     }
 
     @Override
     public Object next() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void remove() {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public XMLEvent peek() throws XMLStreamException {
-        return null;
+
+        if (!hasNext()) {
+            return null;
+        }
+
+        return eventStack.peek();
     }
 
     @Override
     public String getElementText() throws XMLStreamException {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public XMLEvent nextTag() throws XMLStreamException {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Object getProperty(String name) throws IllegalArgumentException {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void close() throws XMLStreamException {
-
+        try {
+            parser.close();
+        } catch (IOException e) {
+            throw new XMLStreamException("Unable to close JSONParser.", e);
+        }
     }
 }

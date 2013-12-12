@@ -3,11 +3,14 @@ package org.brylex.stax4json;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -113,4 +116,14 @@ abstract class JsonXMLEvent implements XMLEvent {
     public QName getSchemaType() {
         return null;
     }
+
+    @Override
+    public void writeAsEncodedUnicode(Writer writer) throws XMLStreamException {
+        try {
+            writer.write(toString());
+        } catch (IOException e) {
+            throw new XMLStreamException("Unable to write XMLEvent to Writer.", e);
+        }
+    }
+
 }

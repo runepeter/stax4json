@@ -22,11 +22,17 @@ public class JsonStartElement extends JsonXMLEvent implements StartElement {
     }
 
     @Override
-    public void writeAsEncodedUnicode(Writer writer) throws XMLStreamException {
-        try {
-            writer.write("<" + qname.getLocalPart() + ">");
-        } catch (IOException e) {
-            throw new XMLStreamException("Unable to serialize event to Writer.", e);
-        }
+    public boolean isStartElement() {
+        return true;
+    }
+
+    @Override
+    public StartElement asStartElement() {
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "<" + qname.getLocalPart() + ">";
     }
 }

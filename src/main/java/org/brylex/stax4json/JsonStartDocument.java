@@ -13,6 +13,11 @@ public class JsonStartDocument extends JsonXMLEvent implements StartDocument {
     }
 
     @Override
+    public boolean isStartDocument() {
+        return true;
+    }
+
+    @Override
     public String getSystemId() {
         return "";
     }
@@ -43,11 +48,7 @@ public class JsonStartDocument extends JsonXMLEvent implements StartDocument {
     }
 
     @Override
-    public void writeAsEncodedUnicode(Writer writer) throws XMLStreamException {
-        try {
-            writer.write("<?xml version=\"" + getVersion() + "\" encoding=\"" + getCharacterEncodingScheme() + "\" standalone=\"" + isStandalone() + "\"?>");
-        } catch (IOException e) {
-            throw new XMLStreamException("Unable to serialize XMLEvent to Writer.", e);
-        }
+    public String toString() {
+        return "<?xml version=\"" + getVersion() + "\" encoding=\"" + getCharacterEncodingScheme() + "\" standalone=\"" + isStandalone() + "\"?>";
     }
 }

@@ -13,6 +13,11 @@ public class JsonEndDocument extends JsonXMLEvent implements EndDocument {
     }
 
     @Override
+    public boolean isEndDocument() {
+        return true;
+    }
+
+    @Override
     public void writeAsEncodedUnicode(Writer writer) throws XMLStreamException {
         try {
             writer.flush();
