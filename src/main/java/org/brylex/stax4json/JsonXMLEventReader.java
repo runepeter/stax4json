@@ -25,12 +25,16 @@ public class JsonXMLEventReader implements XMLEventReader {
     private boolean finished = false;
 
     private Stack<String> fieldStack;
+    private Stack<Integer> arrayStack;
+
+    private int count = 0;
 
     public JsonXMLEventReader(Reader reader) {
         try {
             this.parser = new JsonFactory().createParser(reader);
             this.eventStack = new Stack<>();
             this.fieldStack = new Stack<>();
+            this.arrayStack = new Stack<>();
         } catch (IOException e) {
             throw new RuntimeException("Unable to create JSON parser.", e);
         }
@@ -44,6 +48,9 @@ public class JsonXMLEventReader implements XMLEventReader {
         }
 
         XMLEvent pop = eventStack.pop();
+
+        count++;
+
         if (pop == endDocument) {
             finished = true;
         }
@@ -85,35 +92,94 @@ public class JsonXMLEventReader implements XMLEventReader {
                             return;
                         } else {
 
-                            eventStack.push(new JsonStartElement(parser.getCurrentName()));
+                            String elementName = parser.getCurrentName() != null ? parser.getCurrentName() : fieldStack.peek();
 
+                            eventStack.push(new JsonStartElement(elementName));
                         }
 
                         break;
 
-                    case END_OBJECT:
+                    case END_OBJECT: {
 
                         String elementName = parser.getCurrentName();
 
                         if (elementName != null) {
+
+                            String pop = fieldStack.pop();
+                            if (!pop.equals(elementName)) {
+                                throw new IllegalStateException("Something fishy here!");
+                            }
+
                             eventStack.push(new JsonEndElement(elementName));
+                        } else if (!fieldStack.isEmpty()) {
+                            eventStack.push(new JsonEndElement(fieldStack.peek()));
                         } else {
                             lookAhead();
                         }
 
                         break;
+                    }
 
                     case FIELD_NAME:
+
+                        fieldStack.push(parser.getCurrentName());
 
                         lookAhead();
 
                         break;
 
                     case VALUE_STRING:
+                    case VALUE_TRUE:
+                    case VALUE_FALSE:
+                    case VALUE_NUMBER_INT:
+                    case VALUE_NUMBER_FLOAT: {
+
+                        String elementName = parser.getCurrentName();
+                        if (elementName != null) {
+
+                            String pop = fieldStack.pop();
+                            if (!pop.equals(elementName)) {
+                                throw new IllegalStateException("Something fishy here!");
+                            }
+
+                        } else {
+                            elementName = fieldStack.peek();
+                        }
+
+                        eventStack.push(new JsonEndElement(elementName));
+                        eventStack.push(new JsonCharacters(parser.getText()));
+                        eventStack.push(new JsonStartElement(elementName));
+
+                        break;
+                    }
+
+                    case VALUE_NULL:
+
+                        fieldStack.pop();
 
                         eventStack.push(new JsonEndElement(parser.getCurrentName()));
-                        eventStack.push(new JsonCharacters(parser.getText()));
                         eventStack.push(new JsonStartElement(parser.getCurrentName()));
+
+                        break;
+
+                    case START_ARRAY:
+
+                        arrayStack.push(count);
+
+                        lookAhead();
+
+                        break;
+
+                    case END_ARRAY:
+
+                        String name = fieldStack.pop();
+                        if (count == arrayStack.pop().intValue()) {
+                            eventStack.push(new JsonEndElement(name));
+                            eventStack.push(new JsonStartElement(name));
+                        } else {
+                            lookAhead();
+                        }
+
 
                         break;
 
