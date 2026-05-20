@@ -50,7 +50,7 @@
         <java.version>21</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
 
-        <jackson.version>2.19.0</jackson.version>
+        <jackson.version>2.21.3</jackson.version>
         <junit.version>5.11.3</junit.version>
         <assertj.version>3.27.7</assertj.version>
         <dom4j.version>2.2.0</dom4j.version>
