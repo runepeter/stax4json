@@ -5,7 +5,7 @@ import org.dom4j.Node;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.STAXEventReader;
 import org.dom4j.io.XMLWriter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.events.EndDocument;
@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class JsonXMLEventReaderTest {
 

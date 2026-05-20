@@ -92,7 +92,7 @@ public class JsonXMLEventReader implements XMLEventReader {
                             return;
                         } else {
 
-                            String elementName = parser.getCurrentName() != null ? parser.getCurrentName() : fieldStack.peek();
+                            String elementName = parser.currentName() != null ? parser.currentName() : fieldStack.peek();
 
                             eventStack.push(new JsonStartElement(elementName));
                         }
@@ -101,7 +101,7 @@ public class JsonXMLEventReader implements XMLEventReader {
 
                     case END_OBJECT: {
 
-                        String elementName = parser.getCurrentName();
+                        String elementName = parser.currentName();
 
                         if (elementName != null) {
 
@@ -122,7 +122,7 @@ public class JsonXMLEventReader implements XMLEventReader {
 
                     case FIELD_NAME:
 
-                        fieldStack.push(parser.getCurrentName());
+                        fieldStack.push(parser.currentName());
 
                         lookAhead();
 
@@ -134,7 +134,7 @@ public class JsonXMLEventReader implements XMLEventReader {
                     case VALUE_NUMBER_INT:
                     case VALUE_NUMBER_FLOAT: {
 
-                        String elementName = parser.getCurrentName();
+                        String elementName = parser.currentName();
                         if (elementName != null) {
 
                             String pop = fieldStack.pop();
@@ -157,8 +157,8 @@ public class JsonXMLEventReader implements XMLEventReader {
 
                         fieldStack.pop();
 
-                        eventStack.push(new JsonEndElement(parser.getCurrentName()));
-                        eventStack.push(new JsonStartElement(parser.getCurrentName()));
+                        eventStack.push(new JsonEndElement(parser.currentName()));
+                        eventStack.push(new JsonStartElement(parser.currentName()));
 
                         break;
 
