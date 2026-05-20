@@ -5,7 +5,7 @@
 
     <groupId>org.brylex</groupId>
     <artifactId>stax4json</artifactId>
-    <version>0.2</version>
+    <version>0.3-SNAPSHOT</version>
 
     <name>Stax4Json</name>
     <description>StAX XMLEventReader that streams a JSON document as XML events, so JSON can be consumed by tools that expect StAX (dom4j, JAXB, etc.).</description>
@@ -28,7 +28,7 @@
         <connection>scm:git:git://github.com/runepeter/stax4json.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/runepeter/stax4json.git</developerConnection>
         <url>https://github.com/runepeter/stax4json</url>
-        <tag>stax4json-0.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>
@@ -45,7 +45,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <project.build.outputTimestamp>2026-05-20T19:23:30Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2026-05-20T19:23:36Z</project.build.outputTimestamp>
 
         <java.version>21</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
